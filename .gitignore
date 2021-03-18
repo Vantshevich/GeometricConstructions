@@ -30,3 +30,9 @@
 *.exe
 *.out
 *.app
+
+.vs
+GeometricConstructions/Debug
+GeometricConstructions/x64
+x64
+Debug
