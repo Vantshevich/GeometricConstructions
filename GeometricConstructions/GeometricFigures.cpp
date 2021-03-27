@@ -2,16 +2,14 @@
 #undef UNICODE 
 #include <Windows.h>
 #include <cstring>
-#include <string>
 #include <wingdi.h>
 #include "CTrapezoid.h"
 #include "CBuilder.h"
+#include "CDraw.h"
+#include "CRealTrapezoid.h"
+#include "CShell.h"
 
 #define ID_BUTTON1 1212
-#define ID_BUTTON2 2000
-#define ID_EDIT1 1122
-#define ID_EDIT2 2432
-#define ID_EDIT3 2324
 #define ID_STATIC1 3872
 #define ID_MENU1 2222
 #define MENU_ABOUT 230
@@ -86,14 +84,13 @@ BOOL CreateMenuItem(HMENU hMenu, PSTR str, UINT ulns, UINT uCom, HMENU hSubMenu,
 }
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) {
-
+	
+	static HWND hButton1;
 	static HMENU hMainMenu, hFileMenu;
-	static CBuilder z(hWnd);
+	static CShell shell(hWnd);
 	PAINTSTRUCT  ps;
-	HDC          hdc; 
-	int          x, y;
+	HDC          hdc;
 
-	std::string str;
 	switch (msg) {
 	case WM_CREATE:
 
@@ -104,6 +101,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 		CreateMenuItem(hMainMenu, (PSTR)"About", 2, MENU_ABOUT, 0, FALSE, MFT_STRING);
 		SetMenu(hWnd, hMainMenu);
 		DrawMenuBar(hWnd);
+		
+		hButton1 = CreateWindow("button","Add trapezoid" , WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON, 10, 10, 90, 20, hWnd, (HMENU)ID_BUTTON1, hInstance, 0);
+		
 		break;
 	case WM_COMMAND:
 		switch (wParam) {
@@ -114,29 +114,24 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 		case MENU_ABOUT:
 			MessageBox(hWnd, "This program was created by Oleg Vancevic 2021", "About", 0);
 			break;
-		case ID_BUTTON1:
-			break;
-		case ID_BUTTON2:
-			break;
 		}
-		break;
-		case WM_LBUTTONDOWN:
-			x = LOWORD(lParam);
-			y = HIWORD(lParam);
-			if(!z.IsFinished())
-				z.OnClick(x, y);
-		case WM_MOUSEMOVE: 
-			z.OnMove(LOWORD(lParam), HIWORD(lParam));
-			return 0;
-
-		case WM_LBUTTONUP: 
-			InvalidateRect(hWnd, NULL, FALSE);  
-			return 0;
-
-		case WM_PAINT: 
-			hdc = BeginPaint(hWnd, &ps); 
-			EndPaint(hWnd, &ps); 
-			DeleteDC(hdc);
+	case ID_BUTTON1:
+		shell.OnButton1();
+		return 0;
+	case WM_LBUTTONDOWN:
+		shell.OnLeftButtonDown(LOWORD(lParam), HIWORD(lParam));
+		return 0;
+	case WM_MOUSEMOVE:
+		shell.OnMove(LOWORD(lParam), HIWORD(lParam));
+		return 0;
+	case WM_LBUTTONUP:
+		shell.OnLeftButtonUp(LOWORD(lParam), HIWORD(lParam));
+		return 0;
+	case WM_PAINT:
+		hdc = BeginPaint(hWnd, &ps);
+		shell.OnPaint();
+		EndPaint(hWnd, &ps);
+		DeleteDC(hdc);
 		return 0;
 
 	case WM_DESTROY:
@@ -148,7 +143,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 	default:
 		return DefWindowProc(hWnd, msg, wParam, lParam);
 	}
-	
 
 	return 0;
 }

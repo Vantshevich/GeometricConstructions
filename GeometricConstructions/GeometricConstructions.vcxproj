@@ -141,13 +141,19 @@
   <ItemGroup>
     <ClCompile Include="CBuilder.cpp" />
     <ClCompile Include="CDraw.cpp" />
+    <ClCompile Include="CRealTrapezoid.cpp" />
+    <ClCompile Include="CShell.cpp" />
     <ClCompile Include="CTrapezoid.cpp" />
     <ClCompile Include="GeometricFigures.cpp" />
+    <ClCompile Include="Geometry.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CBuilder.h" />
     <ClInclude Include="CDraw.h" />
+    <ClInclude Include="CRealTrapezoid.h" />
+    <ClInclude Include="CShell.h" />
     <ClInclude Include="CTrapezoid.h" />
+    <ClInclude Include="Geometry.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

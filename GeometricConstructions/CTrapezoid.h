@@ -4,7 +4,14 @@ class CTrapezoid
 public:
 	CTrapezoid(int TopLength, int BottomLength, int TrapezoidHeight, int Shift);
 
-	~CTrapezoid();
+	//~CTrapezoid();
+
+	int GetTopLength() const { return m_nTopLength; }
+	int GetBottomLength() const { return m_nBottomLength; }
+	int GetTrapezoidHeight() const { return m_nTrapezoidHeight; }
+	int GetShift() const { return m_nShift; }
+
+	bool Scale(double coefficient);
 private:
 	int m_nTopLength;
 	int m_nBottomLength;

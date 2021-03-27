@@ -27,6 +27,15 @@
     <ClCompile Include="GeometricFigures.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="CRealTrapezoid.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Geometry.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="CShell.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CBuilder.h">
@@ -36,6 +45,15 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="CTrapezoid.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="CRealTrapezoid.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Geometry.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="CShell.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
