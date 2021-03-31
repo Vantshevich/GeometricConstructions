@@ -23,7 +23,7 @@ public:
 
 	void OnLeftButtonUp(int x, int y);
 
-	void OnPaint(void);
+	void OnPaint();
 
 	void OnButton1();
 private:

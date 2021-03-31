@@ -1,27 +1,26 @@
 #include "CRealTrapezoid.h"
 
-CRealTrapezoid::CRealTrapezoid(HWND hWnd, CTrapezoid* trp, int left, int bottom, COLORREF color)
-	:m_hWnd(hWnd), m_pTrapezoid(trp),
+CRealTrapezoid::CRealTrapezoid(CTrapezoid* trp, int left, int bottom, COLORREF color)
+	:m_pTrapezoid(trp),
 	m_Color(color), m_bSelected(0)
 {
 	m_arrX = new int[4];
 	m_arrY = new int[4];
 	ConvertToPoints(left, bottom);
-	Draw();
 }
 
-CRealTrapezoid::CRealTrapezoid(HWND hWnd, CTrapezoid* trp, COLORREF color)
-	:m_hWnd(hWnd), m_pTrapezoid(trp),
+CRealTrapezoid::CRealTrapezoid(CTrapezoid* trp, COLORREF color)
+	:m_pTrapezoid(trp),
 	m_Color(color), m_bSelected(0)
 {
 	m_arrX = new int[4];
 	m_arrY = new int[4];
 }
 
-void CRealTrapezoid::Put(int x, int y)
+void CRealTrapezoid::Put(HDC hdc, int x, int y)
 {
 	ConvertToPoints(x, y);
-	Draw();	
+	Draw(hdc);	
 }
 
 CRealTrapezoid::~CRealTrapezoid()
@@ -44,11 +43,8 @@ CRealTrapezoid::~CRealTrapezoid()
 	
 }
 
-void CRealTrapezoid::Draw() const
+void CRealTrapezoid::Draw(HDC hdc) const
 {
-	HDC hdc = GetDC(m_hWnd);
-	int nextX = m_arrX[0], nextY = m_arrY[0];
-
 	HBRUSH brush = CreateSolidBrush(m_Color);
 	HBRUSH hOldBrush = (HBRUSH)SelectObject(hdc, brush);
 	HPEN pen = CreatePen(0, 3, m_Color);
@@ -69,8 +65,6 @@ void CRealTrapezoid::Draw() const
 	DeleteObject(brush);
 	SelectObject(hdc, hOldPen);
 	DeleteObject(pen);
-
-	ReleaseDC(m_hWnd, hdc);
 }
 
 void CRealTrapezoid::SetColor(COLORREF color)
@@ -82,21 +76,15 @@ void CRealTrapezoid::RemoveSelection()
 {
 	m_bSelected = false;
 	m_Color = RGB(0, 0, 0);
-	Draw();
 }
 
 void CRealTrapezoid::ChangePosition(int xChange, int yChange)
 {
-	COLORREF oldColor = GetColor();
-	SetColor(RGB(255, 255, 255));
-	Draw();
 	for (int i = 0; i < 4; i++)
 	{
 		m_arrX[i] += xChange;
 		m_arrY[i] += yChange;
 	}
-	SetColor(oldColor);
-	Draw();
 }
 
 bool CRealTrapezoid::ClickOn(int x, int y)

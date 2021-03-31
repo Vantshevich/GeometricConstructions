@@ -115,8 +115,10 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 			MessageBox(hWnd, "This program was created by Oleg Vancevic 2021", "About", 0);
 			break;
 		}
+	case WM_ERASEBKGND:
+		return 1;
 	case ID_BUTTON1:
-		shell.OnButton1();
+		shell.OnButton1(); 
 		return 0;
 	case WM_LBUTTONDOWN:
 		shell.OnLeftButtonDown(LOWORD(lParam), HIWORD(lParam));
@@ -133,7 +135,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 		EndPaint(hWnd, &ps);
 		DeleteDC(hdc);
 		return 0;
-
 	case WM_DESTROY:
 		PostQuitMessage(0);
 		break;

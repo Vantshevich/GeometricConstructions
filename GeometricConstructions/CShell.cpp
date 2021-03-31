@@ -41,6 +41,7 @@ void CShell::OnMove(int x, int y)
 			m_nPreviousY = y;
 		}
 	}
+	OnPaint();
 }
 
 void CShell::OnLeftButtonDown(int x, int y)
@@ -52,9 +53,9 @@ void CShell::OnLeftButtonDown(int x, int y)
 	{
 		builder->OnClick(x, y);
 
-		if (builder->IsFinished())
-		{
-			CRealTrapezoid* rtp = new CRealTrapezoid(m_hWnd, builder->IsFinished());
+		if (builder->IsFinished()){		
+			HDC hdc = GetDC(m_hWnd);
+			CRealTrapezoid* rtp = new CRealTrapezoid(builder->IsFinished());
 			trp.push_back(rtp);
 			
 			phase = Phase::USING;
@@ -62,14 +63,16 @@ void CShell::OnLeftButtonDown(int x, int y)
 			GetWindowRect(m_hWnd, &Rect);
 			int width = Rect.right - Rect.left;
 			int height = Rect.bottom - Rect.top;
-			rtp->Put(width / 2 - builder->IsFinished()->GetBottomLength() / 2, height / 2 - builder->IsFinished()->GetTrapezoidHeight() / 2);
-
+			
+			rtp->Put(hdc ,width / 2 - builder->IsFinished()->GetBottomLength() / 2, height / 2 - builder->IsFinished()->GetTrapezoidHeight() / 2);
+			ReleaseDC(m_hWnd, hdc);
 			builder->~CBuilder();
 		}
 	}
 	else
 	{
 	}
+	OnPaint();
 }
 
 void CShell::OnLeftButtonUp(int x, int y)
@@ -83,13 +86,16 @@ void CShell::OnLeftButtonUp(int x, int y)
 			{
 				trp[i]->Select();
 				trp[i]->SetColor(RGB(0, 0, 128));
-				trp[i]->Draw();
+				HDC hdc = GetDC(m_hWnd);
+				//trp[i]->Draw(hdc);
+				ReleaseDC(m_hWnd, hdc);
 			}
 		}
 	}
+	OnPaint();
 }
 
-void CShell::OnPaint(void)
+void CShell::OnPaint()
 {
 	if (phase == Phase::BUILDING)
 	{
@@ -97,8 +103,39 @@ void CShell::OnPaint(void)
 	}
 	else
 	{
+		HDC hdc, bufferDC;
+		HBITMAP hBM, hoBM;
+		
+		RECT Rect;
+		RECT Rect2;
+		GetClientRect(m_hWnd, &Rect);
+		GetWindowRect(m_hWnd, &Rect2);
+		int width = Rect.right - Rect.left;
+		int height = Rect.bottom - Rect.top;
+		ClientToScreen(m_hWnd, (LPPOINT)&Rect.left);
+		ClientToScreen(m_hWnd, (LPPOINT)&Rect.right);
+		int diffY = Rect.top - Rect2.top;
+		int diffX = Rect.left - Rect2.left;
+
+		hdc = GetWindowDC(m_hWnd);
+		bufferDC = CreateCompatibleDC(hdc);
+		hBM = CreateCompatibleBitmap(hdc, width, height);
+		hoBM = (HBITMAP)SelectObject(bufferDC, hBM);
+
+		HPEN pen = CreatePen(0, 1, RGB(255, 255, 255));
+		HPEN hOldPen = (HPEN)SelectObject(bufferDC, pen);
+		Rectangle(bufferDC, 0, 0, width, height);
+		SelectObject(bufferDC, hOldPen);
+		DeleteObject(pen);
+
 		for (int i = 0; i < trp.size(); i++)
-			trp[i]->Draw();
+			trp[i]->Draw(bufferDC);
+
+		BitBlt(hdc, diffX, diffY, width, height, bufferDC, 0, 0, SRCCOPY);
+		SelectObject(bufferDC, hoBM);
+		
+		DeleteDC(bufferDC);
+		ReleaseDC(m_hWnd, hdc);
 	}
 }
 
