@@ -26,20 +26,46 @@ CBuilder::~CBuilder()
 
 void CBuilder::OnMove(int x, int y)
 {
-	HDC hdc = GetDC(m_hWnd);
+	HDC hdc, bufferDC;
+	HBITMAP hBM, hoBM;
+
+	RECT Rect;
+	RECT Rect2;
+	GetClientRect(m_hWnd, &Rect);
+	GetWindowRect(m_hWnd, &Rect2);
+	int width = Rect.right - Rect.left;
+	int height = Rect.bottom - Rect.top;
+	ClientToScreen(m_hWnd, (LPPOINT)&Rect.left);
+	ClientToScreen(m_hWnd, (LPPOINT)&Rect.right);
+	int diffY = Rect.top - Rect2.top;
+	int diffX = Rect.left - Rect2.left;
+
+	hdc = GetDC(m_hWnd);
+	bufferDC = CreateCompatibleDC(hdc);
+	hBM = CreateCompatibleBitmap(hdc, width, height);
+	hoBM = (HBITMAP)SelectObject(bufferDC, hBM);
+
 	int transfromedX = 1 + (x - 10) / 20;
 	int transfromedY = 1 + (y - 10) / 20; 
-	Redraw(transfromedX, transfromedY);
 
-	 if (transfromedX != m_nCrutchX || transfromedY != m_nCrutchY)
-	{
-		HBRUSH brush = CreateSolidBrush(RGB(0, 0, 0));
-		HBRUSH hOldBrush = (HBRUSH)SelectObject(hdc, brush);
-		Ellipse(hdc, transfromedX * 20 - 5, transfromedY * 20 - 5, transfromedX * 20 + 5, transfromedY * 20 + 5);
-		SelectObject(hdc, hOldBrush);
-		DeleteObject(brush);
-	}
+	HPEN pen = CreatePen(0, 1, RGB(255, 255, 255));
+	HPEN hOldPen = (HPEN)SelectObject(bufferDC, pen);
+	Rectangle(bufferDC, 0, 0, width, height);
+	SelectObject(bufferDC, hOldPen);
+	DeleteObject(pen);
 
+	Redraw(bufferDC, transfromedX, transfromedY);
+	 
+	HBRUSH brush = CreateSolidBrush(RGB(0, 0, 0));
+	HBRUSH hOldBrush = (HBRUSH)SelectObject(bufferDC, brush);
+	Ellipse(bufferDC, transfromedX * 20 - 5, transfromedY * 20 - 5, transfromedX * 20 + 5, transfromedY * 20 + 5);
+	SelectObject(bufferDC, hOldBrush);
+	DeleteObject(brush);
+
+	BitBlt(hdc, 0, 0, width, height, bufferDC, 0, 0, SRCCOPY);
+	SelectObject(bufferDC, hoBM);
+
+	DeleteDC(bufferDC);
 	ReleaseDC(m_hWnd, hdc);
 	m_nCrutchX = transfromedX;
 	m_nCrutchY = transfromedY;
@@ -136,18 +162,88 @@ void CBuilder::OnClick(int x, int y)
 	ReleaseDC(m_hWnd, hdc);
 }
 
-void CBuilder::Redraw(int currentX, int currentY) const
+void CBuilder::Redraw(/*HDC hdc, */int currentX, int currentY) const
 {
-	HDC hdc = GetDC(m_hWnd);
+	HDC hdc, bufferDC;
+	HBITMAP hBM, hoBM;
 
-	if (m_nCrutchX != 0 && m_nCrutchY != 0 && (m_nCrutchX != currentX || m_nCrutchY != currentY))
+	RECT Rect;
+	RECT Rect2;
+	GetClientRect(m_hWnd, &Rect);
+	GetWindowRect(m_hWnd, &Rect2);
+	int width = Rect.right - Rect.left;
+	int height = Rect.bottom - Rect.top;
+	ClientToScreen(m_hWnd, (LPPOINT)&Rect.left);
+	ClientToScreen(m_hWnd, (LPPOINT)&Rect.right);
+	int diffY = Rect.top - Rect2.top;
+	int diffX = Rect.left - Rect2.left;
+
+	hdc = GetDC(m_hWnd);
+	bufferDC = CreateCompatibleDC(hdc);
+	hBM = CreateCompatibleBitmap(hdc, width, height);
+	hoBM = (HBITMAP)SelectObject(bufferDC, hBM);
+
+	HPEN pen = CreatePen(0, 1, RGB(255, 255, 255));
+	HPEN hOldPen = (HPEN)SelectObject(bufferDC, pen);
+	Rectangle(bufferDC, 0, 0, width, height);
+	SelectObject(bufferDC, hOldPen);
+	DeleteObject(pen);
+
+	/*if (m_nCrutchX != 0 && m_nCrutchY != 0 && (m_nCrutchX != currentX || m_nCrutchY != currentY))
 	{
 		HPEN pen = CreatePen(0, 1, RGB(255, 255, 255));
-		HPEN hOldPen = (HPEN)SelectObject(hdc, pen);
-		Ellipse(hdc, m_nCrutchX * 20 - 5, m_nCrutchY * 20 - 5, m_nCrutchX * 20 + 5, m_nCrutchY * 20 + 5);
-		SelectObject(hdc, hOldPen);
+		HPEN hOldPen = (HPEN)SelectObject(bufferDC, pen);
+		Ellipse(bufferDC, m_nCrutchX * 20 - 5, m_nCrutchY * 20 - 5, m_nCrutchX * 20 + 5, m_nCrutchY * 20 + 5);
+		SelectObject(bufferDC, hOldPen);
 		DeleteObject(pen);
+	}*/
+
+	for (int i = 1; i < 34; i++)
+	{
+		MoveToEx(bufferDC, i * 20, 0, NULL);
+		LineTo(bufferDC, i * 20, 500);
 	}
+	for (int i = 1; i < 24; i++)
+	{
+		MoveToEx(bufferDC, 0, i * 20, NULL);
+		LineTo(bufferDC, 700, i * 20);
+	}
+	
+	for (int i = 0; i < m_nNumberOfPoints; i++)
+	{
+		HBRUSH brush = CreateSolidBrush(RGB(0, 0, 0));
+		HBRUSH hOldBrush = (HBRUSH)SelectObject(bufferDC, brush);
+		Ellipse(bufferDC, m_arrX[i] * 20 - 5, m_arrY[i] * 20 - 5, 
+					 m_arrX[i] * 20 + 5, m_arrY[i] * 20 + 5);
+		SelectObject(bufferDC, hOldBrush);
+		DeleteObject(brush);
+		
+		MoveToEx(bufferDC, m_arrX[i] * 20, m_arrY[i] * 20, NULL);
+		if (i != m_nNumberOfPoints - 1 || i == 3)
+		{
+			HPEN pen = CreatePen(0, 3, RGB(0, 0, 0));
+			HPEN hOldPen = (HPEN)SelectObject(bufferDC, pen);
+			
+			if ((i == 3))
+				LineTo(bufferDC, m_arrX[0] * 20, m_arrY[0] * 20);
+			else
+				LineTo(bufferDC, m_arrX[i + 1] * 20, m_arrY[i + 1] * 20);
+
+			SelectObject(bufferDC, hOldPen);
+			DeleteObject(pen);
+		}	
+	}
+
+
+	BitBlt(hdc, 0, 0, width, height, bufferDC, 0, 0, SRCCOPY);
+	SelectObject(bufferDC, hoBM);
+
+	DeleteDC(bufferDC);
+	ReleaseDC(m_hWnd, hdc);
+}
+
+void CBuilder::Redraw(HDC hdc, int currentX, int currentY) const
+{
 
 	for (int i = 1; i < 34; i++)
 	{
@@ -159,22 +255,22 @@ void CBuilder::Redraw(int currentX, int currentY) const
 		MoveToEx(hdc, 0, i * 20, NULL);
 		LineTo(hdc, 700, i * 20);
 	}
-	
+
 	for (int i = 0; i < m_nNumberOfPoints; i++)
 	{
 		HBRUSH brush = CreateSolidBrush(RGB(0, 0, 0));
 		HBRUSH hOldBrush = (HBRUSH)SelectObject(hdc, brush);
-		Ellipse(hdc, m_arrX[i] * 20 - 5, m_arrY[i] * 20 - 5, 
-					 m_arrX[i] * 20 + 5, m_arrY[i] * 20 + 5);
+		Ellipse(hdc, m_arrX[i] * 20 - 5, m_arrY[i] * 20 - 5,
+			m_arrX[i] * 20 + 5, m_arrY[i] * 20 + 5);
 		SelectObject(hdc, hOldBrush);
 		DeleteObject(brush);
-		
+
 		MoveToEx(hdc, m_arrX[i] * 20, m_arrY[i] * 20, NULL);
 		if (i != m_nNumberOfPoints - 1 || i == 3)
 		{
 			HPEN pen = CreatePen(0, 3, RGB(0, 0, 0));
 			HPEN hOldPen = (HPEN)SelectObject(hdc, pen);
-			
+
 			if ((i == 3))
 				LineTo(hdc, m_arrX[0] * 20, m_arrY[0] * 20);
 			else
@@ -182,7 +278,6 @@ void CBuilder::Redraw(int currentX, int currentY) const
 
 			SelectObject(hdc, hOldPen);
 			DeleteObject(pen);
-		}	
+		}
 	}
-	ReleaseDC(m_hWnd, hdc);
 }

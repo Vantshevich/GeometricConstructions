@@ -1,12 +1,13 @@
 #include "CRealTrapezoid.h"
 
-CRealTrapezoid::CRealTrapezoid(CTrapezoid* trp, int left, int bottom, COLORREF color)
+CRealTrapezoid::CRealTrapezoid(CTrapezoid* trp, HDC hdc, int left, int bottom, COLORREF color)
 	:m_pTrapezoid(trp),
 	m_Color(color), m_bSelected(0)
 {
 	m_arrX = new int[4];
 	m_arrY = new int[4];
 	ConvertToPoints(left, bottom);
+	Draw(hdc);
 }
 
 CRealTrapezoid::CRealTrapezoid(CTrapezoid* trp, COLORREF color)
@@ -15,12 +16,6 @@ CRealTrapezoid::CRealTrapezoid(CTrapezoid* trp, COLORREF color)
 {
 	m_arrX = new int[4];
 	m_arrY = new int[4];
-}
-
-void CRealTrapezoid::Put(HDC hdc, int x, int y)
-{
-	ConvertToPoints(x, y);
-	Draw(hdc);	
 }
 
 CRealTrapezoid::~CRealTrapezoid()
@@ -40,7 +35,6 @@ CRealTrapezoid::~CRealTrapezoid()
 		delete m_arrY;
 		m_arrY = nullptr;
 	}
-	
 }
 
 void CRealTrapezoid::Draw(HDC hdc) const
@@ -67,23 +61,18 @@ void CRealTrapezoid::Draw(HDC hdc) const
 	DeleteObject(pen);
 }
 
-void CRealTrapezoid::SetColor(COLORREF color)
-{
-	m_Color = color;
-}
-
 void CRealTrapezoid::RemoveSelection()
 {
 	m_bSelected = false;
 	m_Color = RGB(0, 0, 0);
 }
 
-void CRealTrapezoid::ChangePosition(int xChange, int yChange)
+void CRealTrapezoid::ChangePosition(int xDiffChange, int yDiffChange)
 {
 	for (int i = 0; i < 4; i++)
 	{
-		m_arrX[i] += xChange;
-		m_arrY[i] += yChange;
+		m_arrX[i] += xDiffChange;
+		m_arrY[i] += yDiffChange;
 	}
 }
 

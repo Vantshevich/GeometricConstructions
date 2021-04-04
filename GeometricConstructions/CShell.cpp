@@ -2,7 +2,8 @@
 
 CShell::CShell(HWND hWnd)
 	:m_hWnd(hWnd), phase(Phase::BUILDING),
-	 m_bLeftButtonDown(false)
+	 m_bLeftButtonDown(false), m_pMoving(nullptr),
+	 m_PointPrevious(nullptr)
 {
 	builder = new CBuilder(m_hWnd);
 }
@@ -11,86 +12,105 @@ CShell::~CShell()
 {
 	if (builder != nullptr)
 		delete builder;
+
 	for (int i = 0; i < trp.size(); i++)
+	{
 		if (trp[i] != nullptr)
+		{
 			delete trp[i];
+		}
+	}
+	trp.clear();
+	
+	if (m_PointPrevious)
+	{
+		delete m_PointPrevious;
+		m_PointPrevious = nullptr;
+	}
 }
 
 void CShell::OnMove(int x, int y)
 {
 	if (phase == Phase::BUILDING && !(builder->IsFinished()))
-	{
 		builder->OnMove(x, y);
-	}
 	else
 	{
+		if (!m_PointPrevious)
+			m_PointPrevious = new Point();
 		if (m_bLeftButtonDown)
 		{
-			for (int i = 0; i < trp.size(); i++)
+			if (m_pMoving)
 			{
-				if (trp[i]->Selected())
-				{
-					if (trp[i]->ClickOn(x, y))
-						trp[i]->ChangePosition(x - m_nPreviousX,
-							y - m_nPreviousY);
-					else
-						trp[i]->RemoveSelection();
-				}
+				m_pMoving->ChangePosition(x - m_PointPrevious->x,
+					y - m_PointPrevious->y);
 			}
-			m_nPreviousX = x;
-			m_nPreviousY = y;
 		}
+		m_PointPrevious->x = x;
+		m_PointPrevious->y = y;
+
+		OnPaint();
 	}
-	OnPaint();
 }
 
 void CShell::OnLeftButtonDown(int x, int y)
 {
-	m_bLeftButtonDown = true;
-	m_nPreviousX = x;
-	m_nPreviousY = y;
 	if (phase == Phase::BUILDING && !(builder->IsFinished()))
 	{
 		builder->OnClick(x, y);
 
 		if (builder->IsFinished()){		
 			HDC hdc = GetDC(m_hWnd);
-			CRealTrapezoid* rtp = new CRealTrapezoid(builder->IsFinished());
-			trp.push_back(rtp);
 			
-			phase = Phase::USING;
 			RECT Rect;
-			GetWindowRect(m_hWnd, &Rect);
+			GetClientRect(m_hWnd, &Rect);
 			int width = Rect.right - Rect.left;
 			int height = Rect.bottom - Rect.top;
+
+			CRealTrapezoid* rtp = new CRealTrapezoid(builder->IsFinished(), hdc, width / 2 - builder->IsFinished()->GetBottomLength() / 2, 
+													 height / 2 - builder->IsFinished()->GetTrapezoidHeight() / 2);
+			trp.push_back(rtp);
 			
-			rtp->Put(hdc ,width / 2 - builder->IsFinished()->GetBottomLength() / 2, height / 2 - builder->IsFinished()->GetTrapezoidHeight() / 2);
-			ReleaseDC(m_hWnd, hdc);
 			builder->~CBuilder();
+			ReleaseDC(m_hWnd, hdc);
+			phase = Phase::USING;
 		}
 	}
 	else
 	{
-	}
-	OnPaint();
-}
-
-void CShell::OnLeftButtonUp(int x, int y)
-{
-	m_bLeftButtonDown = false;
-	if (phase != Phase::BUILDING)
-	{
+		m_bLeftButtonDown = true;
+		m_PointPrevious->x = x;
+		m_PointPrevious->y = y;
 		for (int i = trp.size() - 1; i >= 0; i--)
 		{
 			if (trp[i]->ClickOn(x, y))
 			{
-				trp[i]->Select();
-				trp[i]->SetColor(RGB(0, 0, 128));
-				HDC hdc = GetDC(m_hWnd);
-				//trp[i]->Draw(hdc);
-				ReleaseDC(m_hWnd, hdc);
+				if (trp[i]->Selected())
+					m_pMoving = trp[i];
+				else
+				{
+					trp[i]->Select();
+					trp[i]->SetColor(RGB(0, 0, 128));
+				}
+				break;
+			}
+			else
+			{
+				if (trp[i]->Selected())
+				{
+					trp[i]->RemoveSelection();
+					break;
+				}
 			}
 		}
+	}
+}
+
+void CShell::OnLeftButtonUp(int x, int y)
+{
+	if (phase != Phase::BUILDING)
+	{
+		m_pMoving = nullptr;
+		m_bLeftButtonDown = false;
 	}
 	OnPaint();
 }
@@ -139,7 +159,7 @@ void CShell::OnPaint()
 	}
 }
 
-void CShell::OnButton1()
+void CShell::BuildTrapezoid()
 {
 	phase = Phase::BUILDING;
 }

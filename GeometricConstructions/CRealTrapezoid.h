@@ -7,16 +7,14 @@
 class CRealTrapezoid
 {
 public:
-	CRealTrapezoid(CTrapezoid* trp, int left, int bottom, COLORREF color = RGB(0, 0, 0));
+	CRealTrapezoid(CTrapezoid* trp, HDC hdc, int left, int bottom, COLORREF color = RGB(0, 0, 0));
 	CRealTrapezoid(CTrapezoid* trp, COLORREF color = RGB(0, 0, 0));
 
 	~CRealTrapezoid();
 
-	void Put(HDC hdc, int x, int y);
-
 	void Draw(HDC hdc) const;
 
-	void SetColor(COLORREF color = RGB(0, 0, 0));
+	void SetColor(COLORREF color = RGB(0, 0, 0)) { m_Color = color; };
 
 	bool Selected() const { return m_bSelected; }
 
@@ -24,7 +22,7 @@ public:
 
 	void RemoveSelection();
 
-	void ChangePosition(int xChange, int yChange);
+	void ChangePosition(int xDiffChange, int yDiffChange);
 
 	bool ClickOn(int x, int y);
 private:

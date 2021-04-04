@@ -16,6 +16,9 @@
 #define MENU_PROGRAM 229
 #define EXIT_PROGRAM 228
 #define MAXPOINTS 1000
+#define ADD_TRAPZEOID 41
+#define ADD_CIRCLE 421
+#define ADD_SQUARE 24
 #define MoveTo(hdc, x, y) MoveToEx (hdc, x, y, NULL)
 
 LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
@@ -85,8 +88,7 @@ BOOL CreateMenuItem(HMENU hMenu, PSTR str, UINT ulns, UINT uCom, HMENU hSubMenu,
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 	
-	static HWND hButton1;
-	static HMENU hMainMenu, hFileMenu;
+	static HMENU hMainMenu, hFileMenu, hFigureMenu;
 	static CShell shell(hWnd);
 	PAINTSTRUCT  ps;
 	HDC          hdc;
@@ -96,14 +98,19 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 
 		hMainMenu = CreateMenu();
 		hFileMenu = CreatePopupMenu();
-		CreateMenuItem(hFileMenu, (PSTR)"Exit", 3, EXIT_PROGRAM, NULL, FALSE, MFT_STRING);
+		hFigureMenu = CreatePopupMenu();
+		CreateMenuItem(hFileMenu, (PSTR)"Exit", 4, EXIT_PROGRAM, NULL, FALSE, MFT_STRING);
 		CreateMenuItem(hMainMenu, (PSTR)"Program", 1, MENU_PROGRAM, hFileMenu, FALSE, MFT_STRING);
 		CreateMenuItem(hMainMenu, (PSTR)"About", 2, MENU_ABOUT, 0, FALSE, MFT_STRING);
+		CreateMenuItem(hMainMenu, (PSTR)"Add figure", 3, MENU_PROGRAM, hFigureMenu, FALSE, MFT_STRING);
+
+		CreateMenuItem(hFigureMenu, (PSTR)"Add trapezoid", 5, ADD_TRAPZEOID, NULL, FALSE, MFT_STRING);
+		CreateMenuItem(hFigureMenu, (PSTR)"Add circle", 6, ADD_CIRCLE, NULL, FALSE, MFT_STRING);
+		CreateMenuItem(hFigureMenu, (PSTR)"Add square", 7, ADD_SQUARE, NULL, FALSE, MFT_STRING);
+
 		SetMenu(hWnd, hMainMenu);
 		DrawMenuBar(hWnd);
-		
-		hButton1 = CreateWindow("button","Add trapezoid" , WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON, 10, 10, 90, 20, hWnd, (HMENU)ID_BUTTON1, hInstance, 0);
-		
+			
 		break;
 	case WM_COMMAND:
 		switch (wParam) {
@@ -115,11 +122,12 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 			MessageBox(hWnd, "This program was created by Oleg Vancevic 2021", "About", 0);
 			break;
 		}
+		case ADD_TRAPZEOID:
+		{
+			shell.BuildTrapezoid();
+		}
 	case WM_ERASEBKGND:
 		return 1;
-	case ID_BUTTON1:
-		shell.OnButton1(); 
-		return 0;
 	case WM_LBUTTONDOWN:
 		shell.OnLeftButtonDown(LOWORD(lParam), HIWORD(lParam));
 		return 0;

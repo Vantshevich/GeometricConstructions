@@ -4,6 +4,11 @@
 #include "CTrapezoid.h"
 #include <vector>
 
+struct Point {
+	int x;
+	int y;
+};
+
 enum class Phase
 {
 	BUILDING,
@@ -25,11 +30,16 @@ public:
 
 	void OnPaint();
 
-	void OnButton1();
+	void BuildTrapezoid();
+
 private:
+	//bool Select(int top, int left, int right, int bottom);    /*In developing*/
+
 	CBuilder *builder;
 
 	std::vector<CRealTrapezoid*> trp;
+
+	CRealTrapezoid* m_pMoving;
 
 	Phase phase;
 
@@ -37,7 +47,6 @@ private:
 
 	bool m_bLeftButtonDown;
 
-	int m_nPreviousX;
-	int m_nPreviousY;
+	Point *m_PointPrevious;
 };
 

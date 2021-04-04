@@ -21,6 +21,8 @@ public:
 
 	void Redraw(int currentX, int currentY) const;
 
+	void Redraw(HDC hdc, int currentX, int currentY) const;
+
 private:
 	HWND m_hWnd;
 
